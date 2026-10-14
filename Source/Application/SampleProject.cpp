@@ -42,7 +42,7 @@ SampleProject::SampleProject(Context* context)
 
 void SampleProject::Load()
 {
-    RegisterObject<PlayerController>();
+    RegisterObject<SampleProjectApi::PlayerController>();
     RegisterObject<MainMenuWindow>();
     RegisterObject<SampleGameScreen>();
 }

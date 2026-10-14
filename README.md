@@ -16,6 +16,37 @@ Provide `rbfx`:
   - Windows: provide `-DCMAKE_PREFIX_PATH=/path/to/rbfx-SDK/share`
   - Unix: provide `-DCMAKE_PREFIX_PATH=/path/to/rbfx-SDK`
 
+### Optional .NET hosting (C# plugin)
+
+Use `-DSAMPLE_PROJECT_CSHARP=ON` to start the .NET runtime in the launcher and load the C# plugin
+`Source/Managed/SampleProject.Net`. The default is `OFF`. Then the build does not need .NET.
+
+- It needs the dotnet SDK. Desktop needs a shared (dynamic library) engine SDK. Web and iOS need a static engine SDK.
+- It works on Linux, Windows, macOS, Android, Web and iOS (device, arm64). The configure step fails on other mobile platforms
+  and on the iOS simulator.
+- On Android, iOS and Web a .NET head is the entry and no hostfxr is used. The launcher is the same on all platforms.
+  The Web build uses source mode with wasm managed assemblies. The head makes the web folder, and it packs
+  `Data.pak` and `CoreData.pak`. The iOS build makes an app bundle and links the static bindings into it.
+  See the README of SharpCpp.Rbfx for the setup of these two platforms. These two builds are not tested here.
+- Put the engine and [SharpCpp.Rbfx](https://github.com/rbfx/SharpCpp.Rbfx) on `CMAKE_PREFIX_PATH`.
+  Use one of these two forms:
+  - SharpCpp.Rbfx SDK (made with `cmake --install`):
+    `-DCMAKE_PREFIX_PATH="/path/to/rbfx-SDK;/path/to/sharpcpp-rbfx-SDK"`
+  - SharpCpp.Rbfx source tree (it needs a SharpCpp checkout; set `SHARPCPP_ROOT` if it is not in `../SharpCpp`):
+    `-DCMAKE_PREFIX_PATH="/path/to/rbfx-SDK;/path/to/SharpCpp.Rbfx/cmake/SharpCppRbfx"`
+- `Source/Launcher/CMakeLists.txt` makes the launcher and all C# parts with one call to `rbfx_csharp_add_project()`.
+  The call binds the C++ user code to C# (`HEADERS`, `IMPLEMENTATION`, `NAMESPACE`), builds the C# plugin, links the
+  C++ plugins (`PLUGINS`), packs the data on Android, iOS and Web (`DATA`) and adds the install rules (`INSTALL`).
+  The native library of the user code and the plugin are next to the launcher.
+- The bound types are `PlayerController` and `GameSaveData` in the C++ namespace `SampleProjectApi`
+  (`Source/Application/SampleProjectApi.h`). The generator ignores other namespaces.
+  The plugin creates a `PlayerController` and a `GameSaveData` and logs their values. The C++ plugin `App.Main` registers
+  the factory of `PlayerController`. A second registration in C# fails with a duplicate reflection error.
+  The classes of `App.Main` use the export macro `SAMPLE_PROJECT_API`.
+- The plugin project is generated from the folder `Source/Managed/SampleProject.Net`.
+  To use an own project file, pass `CSPROJ` to the call.
+  CI of SharpCpp.Rbfx builds this sample against its SDK.
+
 Check out `Scripts/` folder and `.github/workflows/deploy.yml` to see how this sample can be built.
 
 ## Running the Sample

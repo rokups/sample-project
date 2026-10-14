@@ -6,38 +6,13 @@
 #include <Urho3D/Scene/Scene.h>
 #include <Urho3D/UI/SplashScreen.h>
 
+#include "SampleProjectApi.h"
+
 using namespace Urho3D;
 
 class SampleProject;
 
 URHO3D_GLOBAL_CONSTANT(ConstString Category_SampleProject{ "Component/SampleProject" });
-
-/// Player controller class.
-class PlayerController : public LogicComponent
-{
-    URHO3D_OBJECT(PlayerController, LogicComponent);
-
-public:
-    explicit PlayerController(Context* context);
-
-    /// Register object factory and attributes.
-    static void RegisterObject(Context* context);
-
-    void FixedUpdate(float timeStep) override;
-
-private:
-    float jumpInterval_{ 0.3f };
-    float jumpCooldown_{};
-};
-
-/// Save file.
-struct GameSaveData
-{
-    Vector3 actorPosition_;
-    Quaternion actorRotation_;
-
-    void SerializeInBlock(Archive& archive);
-};
 
 /// Screen with actual game.
 class SampleGameScreen : public ApplicationState

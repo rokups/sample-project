@@ -35,15 +35,41 @@ if (WIN32)
 endif()
 
 # Add launcher target.
-if (ANDROID)
-    add_library(${TARGET_NAME} MODULE ${SOURCE_FILES} ${RESOURCE_FILES})
+if (SAMPLE_PROJECT_CSHARP)
+    # One call makes the bindings of the user code, the launcher, the managed plugin, the paks and the install rules.
+    # The plugin project is generated from CSHARP_DIR. CSPROJ can name an own project instead.
+    # The bindings of Plugin.Core.SamplePlugin are made in the folder of that plugin. Its managed plugin references them.
+    set (SAMPLE_EXTRA_BINDINGS)
+    if (TARGET Plugin.Core.SamplePlugin.Bindings)
+        list (APPEND SAMPLE_EXTRA_BINDINGS Plugin.Core.SamplePlugin.Bindings)
+    endif ()
+    rbfx_csharp_add_project (${TARGET_NAME}
+        SOURCES ${SOURCE_FILES} ${RESOURCE_FILES}
+        CSHARP_DIR "${CMAKE_SOURCE_DIR}/Source/Managed/SampleProject.Net"
+        HEADERS "${CMAKE_SOURCE_DIR}/Source/Application/SampleProjectApi.h"
+        IMPLEMENTATION ${APP_PLUGIN_NAME}
+        NAMESPACE SampleProjectApi
+        BINDINGS_TARGETS ${SAMPLE_EXTRA_BINDINGS}
+        PLUGINS ${APP_PLUGIN_LIST}
+        LINK_LIBRARIES PlayerLibrary
+        DATA "${CMAKE_SOURCE_DIR}/Project/Data"
+        INSTALL)
+    target_compile_definitions (${TARGET_NAME} PRIVATE SAMPLE_PROJECT_CSHARP=1)
 else ()
-    add_executable(${TARGET_NAME} WIN32 MACOSX_BUNDLE ${SOURCE_FILES} ${RESOURCE_FILES})
+    if (ANDROID)
+        add_library(${TARGET_NAME} MODULE ${SOURCE_FILES} ${RESOURCE_FILES})
+    else ()
+        add_executable(${TARGET_NAME} WIN32 MACOSX_BUNDLE ${SOURCE_FILES} ${RESOURCE_FILES})
+    endif ()
+
+    # Link launcher with the engine.
+    target_link_libraries (${TARGET_NAME} PRIVATE Urho3D PlayerLibrary)
 endif ()
 
-# Link launcher with the engine and plugins.
-target_link_libraries (${TARGET_NAME} PRIVATE Urho3D PlayerLibrary)
-target_link_plugins (${TARGET_NAME} "${APP_PLUGIN_LIST}")
+# Link launcher with plugins. With C#, rbfx_csharp_add_project does it (PLUGINS).
+if (NOT SAMPLE_PROJECT_CSHARP)
+    target_link_plugins (${TARGET_NAME} "${APP_PLUGIN_LIST}")
+endif ()
 
 if (UWP)
     set_property(TARGET ${TARGET_NAME} PROPERTY VS_DESKTOP_EXTENSIONS_VERSION "${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}")
