@@ -35,14 +35,33 @@ if (WIN32)
 endif()
 
 # Add launcher target.
-if (ANDROID)
-    add_library(${TARGET_NAME} MODULE ${SOURCE_FILES} ${RESOURCE_FILES})
+if (SAMPLE_PROJECT_CSHARP)
+    # The launcher hosts .NET and loads the C# plugin (optional). One call makes the executable and
+    # the C# parts. The plugin is built with dotnet next to the launcher.
+    # The bindings of the user code (Source/Bindings) are referenced by the plugin project. The property
+    # is the generated managed project of the bindings.
+    get_target_property (USERCODE_PROJECT SampleProject.UserCode SHARPCPP_RBFX_MANAGED_PROJECT)
+    rbfx_csharp_add_application (${TARGET_NAME}
+        SOURCES ${SOURCE_FILES} ${RESOURCE_FILES}
+        PLUGIN "${CMAKE_SOURCE_DIR}/Source/Managed/SampleProject.Managed/SampleProject.Managed.csproj"
+        PROPERTIES "SampleProjectUserCodeProject=${USERCODE_PROJECT}"
+        USERCODE SampleProject.UserCode
+        LINK_LIBRARIES PlayerLibrary
+        # Android packs the resources into the APK. The top-level CMakeLists.txt makes the paks.
+        RESOURCES "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Data.pak" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CoreData.pak")
+    target_compile_definitions (${TARGET_NAME} PRIVATE SAMPLE_PROJECT_CSHARP=1)
 else ()
-    add_executable(${TARGET_NAME} WIN32 MACOSX_BUNDLE ${SOURCE_FILES} ${RESOURCE_FILES})
+    if (ANDROID)
+        add_library(${TARGET_NAME} MODULE ${SOURCE_FILES} ${RESOURCE_FILES})
+    else ()
+        add_executable(${TARGET_NAME} WIN32 MACOSX_BUNDLE ${SOURCE_FILES} ${RESOURCE_FILES})
+    endif ()
+
+    # Link launcher with the engine.
+    target_link_libraries (${TARGET_NAME} PRIVATE Urho3D PlayerLibrary)
 endif ()
 
-# Link launcher with the engine and plugins.
-target_link_libraries (${TARGET_NAME} PRIVATE Urho3D PlayerLibrary)
+# Link launcher with plugins.
 target_link_plugins (${TARGET_NAME} "${APP_PLUGIN_LIST}")
 
 if (UWP)

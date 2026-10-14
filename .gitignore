@@ -15,3 +15,7 @@ android/.cxx
 # Ignore log files
 Urho3D.log
 
+
+# Output of the optional C# plugin
+Source/Managed/**/obj/
+Source/Managed/**/bin/

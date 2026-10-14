@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The managed plugin of the launcher. CMake builds it with "dotnet build" (see Source/Launcher/CMakeLists.txt).
+       CMake passes these properties:
+         SharpCppRbfxIsSdk       - "true" when SharpCpp.Rbfx comes from an installed SDK, else "false".
+         SharpCppRbfxManagedDir  - folder with the managed assemblies of the SDK (SDK mode only).
+         SharpCppRbfxPackageRoot - root of the SharpCpp.Rbfx source tree (source mode only).
+         SampleProjectUserCodeProject - generated bindings project of the C++ user code of the sample
+                                        (Source/Bindings). It makes the namespace SampleProjectApi. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <Nullable>disable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>12.0</LangVersion>
+    <NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+
+  <!-- SDK mode: reference the managed assemblies of the installed SharpCpp.Rbfx SDK. -->
+  <ItemGroup Condition="'$(SharpCppRbfxIsSdk)' == 'true'">
+    <Reference Include="SharpCpp.Rbfx.Bindings">
+      <HintPath>$(SharpCppRbfxManagedDir)/SharpCpp.Rbfx.Bindings.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpCpp.Support">
+      <HintPath>$(SharpCppRbfxManagedDir)/SharpCpp.Support.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpCpp.Std">
+      <HintPath>$(SharpCppRbfxManagedDir)/SharpCpp.Std.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpCpp.Ea">
+      <HintPath>$(SharpCppRbfxManagedDir)/SharpCpp.Ea.dll</HintPath>
+    </Reference>
+    <Analyzer Include="$(SharpCppRbfxManagedDir)/SharpCpp.Rbfx.SourceGenerator.dll" />
+  </ItemGroup>
+
+  <!-- Source mode: build the bindings and the source generator from the SharpCpp.Rbfx source tree. -->
+  <ItemGroup Condition="'$(SharpCppRbfxIsSdk)' != 'true'">
+    <ProjectReference Include="$(SharpCppRbfxPackageRoot)/SharpCpp.Rbfx.Bindings/SharpCpp.Rbfx.Bindings.csproj" />
+    <ProjectReference Include="$(SharpCppRbfxPackageRoot)/SharpCpp.Rbfx.SourceGenerator/SharpCpp.Rbfx.SourceGenerator.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- The bindings of the C++ user code (PlayerController, GameSaveData). The native library of the bindings
+       is in the folder of the launcher. -->
+  <ItemGroup Condition="'$(SampleProjectUserCodeProject)' != ''">
+    <ProjectReference Include="$(SampleProjectUserCodeProject)" />
+  </ItemGroup>
+</Project>

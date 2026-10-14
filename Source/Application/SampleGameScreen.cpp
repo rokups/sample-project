@@ -40,6 +40,9 @@
 #include "MenuGameScreen.h"
 #include "SampleProject.h"
 
+namespace SampleProjectApi
+{
+
 PlayerController::PlayerController(Context* context)
     : LogicComponent(context)
 {
@@ -96,6 +99,8 @@ void GameSaveData::SerializeInBlock(Archive& archive)
     SerializeValue(archive, "actorRotation", actorRotation_);
 }
 
+} // namespace SampleProjectApi
+
 SampleGameScreen::SampleGameScreen(Context* context)
     : ApplicationState(context)
 {
@@ -134,7 +139,7 @@ void SampleGameScreen::InitScene()
     cameraNode_ = camera->GetNode();
 
     // Create player component now to prevent it from moving in Editor.
-    auto player = actorNode_->CreateComponent<PlayerController>();
+    auto player = actorNode_->CreateComponent<SampleProjectApi::PlayerController>();
 
     // Create free-fly controller with zero speed to control motion with physics.
     const auto controller = cameraNode_->CreateComponent<FreeFlyController>();
@@ -196,7 +201,7 @@ void SampleGameScreen::SaveGame()
     if (GetPlatform() != PlatformId::Web || !scene_)
         return;
 
-    GameSaveData saveGame;
+    SampleProjectApi::GameSaveData saveGame;
     saveGame.actorPosition_ = actorNode_->GetWorldPosition();
     saveGame.actorRotation_ = cameraNode_->GetWorldRotation();
 
@@ -225,7 +230,7 @@ void SampleGameScreen::LoadGame()
     if (!jsonFile.Load(*file))
         return;
 
-    GameSaveData saveGame;
+    SampleProjectApi::GameSaveData saveGame;
     jsonFile.LoadObject("saveGameData", saveGame);
 
     actorNode_->SetWorldPosition(saveGame.actorPosition_);

@@ -24,6 +24,27 @@ set(URHO3D_SAMPLES OFF)
 #   - Configure with `-DCMAKE_PREFIX_PATH=/path/to/rbfx/CMake`
 find_package(Urho3D REQUIRED)
 
+# Optional .NET hosting. The launcher starts the .NET runtime and loads the C# plugin Source/Managed/SampleProject.Managed.
+# It needs the dotnet SDK and a shared engine SDK. It supports Linux, Windows and Android.
+# On Android the build makes an APK with a .NET Android head (see rbfx_csharp_add_application).
+# SharpCpp.Rbfx must be available on CMAKE_PREFIX_PATH, in addition to the engine:
+# Option 1 - SharpCpp.Rbfx SDK:
+#   - Install SharpCpp.Rbfx with `cmake --install` into some folder
+#   - Configure with `-DCMAKE_PREFIX_PATH="/path/to/rbfx-sdk;/path/to/sharpcpp-rbfx-sdk"`
+# Option 2 - in-source build:
+#   - Clone SharpCpp.Rbfx next to a SharpCpp checkout (or set SHARPCPP_ROOT)
+#   - Configure with `-DCMAKE_PREFIX_PATH="/path/to/rbfx-sdk;/path/to/SharpCpp.Rbfx/cmake/SharpCppRbfx"`
+option(SAMPLE_PROJECT_CSHARP "Host .NET and load a C# plugin" OFF)
+if (SAMPLE_PROJECT_CSHARP)
+    if (WEB OR APPLE OR (MOBILE AND NOT ANDROID))
+        message(FATAL_ERROR "SAMPLE_PROJECT_CSHARP is for Linux, Windows and Android only.")
+    endif ()
+    find_package(SharpCppRbfx CONFIG REQUIRED)
+    if (SharpCppRbfx_IS_SDK AND NOT SharpCppRbfx_MANAGED_DIR)
+        message(FATAL_ERROR "The SharpCpp.Rbfx SDK has no managed assemblies. Use an SDK with managed files.")
+    endif ()
+endif ()
+
 # Check if Core.SamplePlugin exists
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Core.SamplePlugin/CMakeLists.txt")
     message(FATAL_ERROR
@@ -48,6 +69,11 @@ add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Application)
 # Add custom editor linked with user code.
 # With dynamic linking, pre-built editor can be used.
 add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Editor)
+
+# Bind the C++ user code to C# (optional). The launcher passes the bindings to the managed plugin.
+if (SAMPLE_PROJECT_CSHARP)
+    add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Bindings)
+endif ()
 
 # Add custom player.
 add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Launcher)
