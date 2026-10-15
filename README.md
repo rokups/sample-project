@@ -21,8 +21,13 @@ Provide `rbfx`:
 Use `-DSAMPLE_PROJECT_CSHARP=ON` to start the .NET runtime in the launcher and load the C# plugin
 `Source/Managed/SampleProject.Managed`. The default is `OFF`. Then the build does not need .NET.
 
-- It needs the dotnet SDK, and the engine must be a shared (dynamic library) SDK.
-- It works on Linux, Windows, macOS and Android. The configure step fails on Web and iOS.
+- It needs the dotnet SDK. Desktop needs a shared (dynamic library) engine SDK. Web and iOS need a static engine SDK.
+- It works on Linux, Windows, macOS, Android, Web and iOS (device, arm64). The configure step fails on other mobile platforms
+  and on the iOS simulator.
+- On Android, iOS and Web a .NET head is the entry and no hostfxr is used. The launcher is the same on all platforms.
+  The Web build uses source mode with wasm managed assemblies. The head makes the web folder, and it packs
+  `Data.pak` and `CoreData.pak`. The iOS build makes an app bundle and links the static bindings into it.
+  See the README of SharpCpp.Rbfx for the setup of these two platforms. These two builds are not tested here.
 - Put the engine and [SharpCpp.Rbfx](https://github.com/rbfx/SharpCpp.Rbfx) on `CMAKE_PREFIX_PATH`.
   Use one of these two forms:
   - SharpCpp.Rbfx SDK (made with `cmake --install`):
@@ -41,6 +46,7 @@ Use `-DSAMPLE_PROJECT_CSHARP=ON` to start the .NET runtime in the launcher and l
   The plugin creates a `PlayerController` and a `GameSaveData` and logs their values. The C++ plugin `App.Main` registers
   the factory of `PlayerController`. A second registration in C# fails with a duplicate reflection error.
   The native library `libSampleProject.UserCode.Native` is copied next to the launcher, and the runtime loads it from there.
+  On Web and iOS there is no copy. The native library is static code in the head.
   The type of this library follows `BUILD_SHARED_LIBS`, so it is always equal to the type of the engine.
   The classes of `App.Main` use the export macro `SAMPLE_PROJECT_API`.
   The build of the bindings is tested on Linux with both forms above.

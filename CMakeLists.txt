@@ -25,8 +25,11 @@ set(URHO3D_SAMPLES OFF)
 find_package(Urho3D REQUIRED)
 
 # Optional .NET hosting. The launcher starts the .NET runtime and loads the C# plugin Source/Managed/SampleProject.Managed.
-# It needs the dotnet SDK and a shared engine SDK. It supports Linux, Windows, macOS and Android.
-# On Android the build makes an APK with a .NET Android head (see rbfx_csharp_add_application).
+# It needs the dotnet SDK. Desktop needs a shared engine SDK. Web and iOS need a static engine SDK.
+# It supports Linux, Windows, macOS, Android, Web and iOS (device, arm64).
+# On Android and iOS the build makes an app with a .NET head. On Web the build makes a web folder with a .NET
+# WebAssembly head (see rbfx_csharp_add_application). A mobile platform other than Android and iOS is not supported.
+# The iOS simulator is rejected by rbfx_csharp_add_application.
 # SharpCpp.Rbfx must be available on CMAKE_PREFIX_PATH, in addition to the engine:
 # Option 1 - SharpCpp.Rbfx SDK:
 #   - Install SharpCpp.Rbfx with `cmake --install` into some folder
@@ -36,8 +39,8 @@ find_package(Urho3D REQUIRED)
 #   - Configure with `-DCMAKE_PREFIX_PATH="/path/to/rbfx-sdk;/path/to/SharpCpp.Rbfx/cmake/SharpCppRbfx"`
 option(SAMPLE_PROJECT_CSHARP "Host .NET and load a C# plugin" OFF)
 if (SAMPLE_PROJECT_CSHARP)
-    if (WEB OR IOS OR (MOBILE AND NOT ANDROID))
-        message(FATAL_ERROR "SAMPLE_PROJECT_CSHARP is for Linux, Windows, macOS and Android only.")
+    if (MOBILE AND NOT ANDROID AND NOT IOS)
+        message(FATAL_ERROR "SAMPLE_PROJECT_CSHARP is for Linux, Windows, macOS, Android, Web and iOS only.")
     endif ()
     find_package(SharpCppRbfx CONFIG REQUIRED)
     if (SharpCppRbfx_IS_SDK AND NOT SharpCppRbfx_MANAGED_DIR)
@@ -92,8 +95,9 @@ if (WEB OR MOBILE)
     create_pak("${SAMPLE_CORE_DATA}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CoreData.pak")
 endif ()
 
-# Link resources to Player for Web.
-if (WEB)
+# Link resources to Player for Web. With C#, ${CMAKE_PROJECT_NAME} is an object library and the .NET head
+# packs the resources (the RESOURCES argument in Source/Launcher/CMakeLists.txt).
+if (WEB AND NOT SAMPLE_PROJECT_CSHARP)
     web_executable (${CMAKE_PROJECT_NAME})
     package_resources_web(
         FILES        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Data.pak"
@@ -116,7 +120,12 @@ foreach (TARGET
     ${CMAKE_PROJECT_NAME}Editor
     ${APP_PLUGIN_NAME}
     Plugin.Core.SamplePlugin)
+    # An object library (the launcher on Web with C#) has no file to install. The .NET head makes the web folder.
+    set (TARGET_TYPE "")
     if (TARGET ${TARGET})
+        get_target_property (TARGET_TYPE ${TARGET} TYPE)
+    endif ()
+    if (TARGET ${TARGET} AND NOT TARGET_TYPE STREQUAL "OBJECT_LIBRARY")
         install(TARGETS ${TARGET}
             RUNTIME DESTINATION bin/$<CONFIG>
             LIBRARY DESTINATION bin/$<CONFIG>
