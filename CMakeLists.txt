@@ -25,7 +25,7 @@ set(URHO3D_SAMPLES OFF)
 find_package(Urho3D REQUIRED)
 
 # Optional .NET hosting. The launcher starts the .NET runtime and loads the C# plugin Source/Managed/SampleProject.Managed.
-# It needs the dotnet SDK and a shared engine SDK. It supports Linux, Windows and Android.
+# It needs the dotnet SDK and a shared engine SDK. It supports Linux, Windows, macOS and Android.
 # On Android the build makes an APK with a .NET Android head (see rbfx_csharp_add_application).
 # SharpCpp.Rbfx must be available on CMAKE_PREFIX_PATH, in addition to the engine:
 # Option 1 - SharpCpp.Rbfx SDK:
@@ -36,8 +36,8 @@ find_package(Urho3D REQUIRED)
 #   - Configure with `-DCMAKE_PREFIX_PATH="/path/to/rbfx-sdk;/path/to/SharpCpp.Rbfx/cmake/SharpCppRbfx"`
 option(SAMPLE_PROJECT_CSHARP "Host .NET and load a C# plugin" OFF)
 if (SAMPLE_PROJECT_CSHARP)
-    if (WEB OR APPLE OR (MOBILE AND NOT ANDROID))
-        message(FATAL_ERROR "SAMPLE_PROJECT_CSHARP is for Linux, Windows and Android only.")
+    if (WEB OR IOS OR (MOBILE AND NOT ANDROID))
+        message(FATAL_ERROR "SAMPLE_PROJECT_CSHARP is for Linux, Windows, macOS and Android only.")
     endif ()
     find_package(SharpCppRbfx CONFIG REQUIRED)
     if (SharpCppRbfx_IS_SDK AND NOT SharpCppRbfx_MANAGED_DIR)

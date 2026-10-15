@@ -22,7 +22,7 @@ Use `-DSAMPLE_PROJECT_CSHARP=ON` to start the .NET runtime in the launcher and l
 `Source/Managed/SampleProject.Managed`. The default is `OFF`. Then the build does not need .NET.
 
 - It needs the dotnet SDK, and the engine must be a shared (dynamic library) SDK.
-- It works on Linux and Windows only. The configure step fails on Web, mobile and Apple platforms.
+- It works on Linux, Windows, macOS and Android. The configure step fails on Web and iOS.
 - Put the engine and [SharpCpp.Rbfx](https://github.com/rbfx/SharpCpp.Rbfx) on `CMAKE_PREFIX_PATH`.
   Use one of these two forms:
   - SharpCpp.Rbfx SDK (made with `cmake --install`):
