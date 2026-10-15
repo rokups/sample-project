@@ -42,8 +42,9 @@ Use `-DSAMPLE_PROJECT_CSHARP=ON` to start the .NET runtime in the launcher and l
   the factory of `PlayerController`. A second registration in C# fails with a duplicate reflection error.
   The native library `libSampleProject.UserCode.Native` is copied next to the launcher, and the runtime loads it from there.
   The type of this library follows `BUILD_SHARED_LIBS`, so it is always equal to the type of the engine.
+  The classes of `App.Main` use the export macro `SAMPLE_PROJECT_API`.
   The build of the bindings is tested on Linux with both forms above.
-  The classes of `App.Main` have no export macros yet, so the bindings are not tested on Windows.
+  CI of SharpCpp.Rbfx builds this sample against its SDK.
 
 Check out `Scripts/` folder and `.github/workflows/deploy.yml` to see how this sample can be built.
 
