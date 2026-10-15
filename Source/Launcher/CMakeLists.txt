@@ -36,19 +36,18 @@ endif()
 
 # Add launcher target.
 if (SAMPLE_PROJECT_CSHARP)
-    # The launcher hosts .NET and loads the C# plugin (optional). One call makes the executable and
-    # the C# parts. The plugin is built with dotnet next to the launcher.
-    # The bindings of the user code (Source/Bindings) are referenced by the plugin project. The property
-    # is the generated managed project of the bindings.
-    get_target_property (USERCODE_PROJECT SampleProject.UserCode SHARPCPP_RBFX_MANAGED_PROJECT)
-    rbfx_csharp_add_application (${TARGET_NAME}
+    # One call makes the bindings of the user code, the launcher, the managed plugin, the paks and the install rules.
+    # The plugin project is generated from CSHARP_DIR. CSPROJ can name an own project instead.
+    rbfx_csharp_add_project (${TARGET_NAME}
         SOURCES ${SOURCE_FILES} ${RESOURCE_FILES}
-        PLUGIN "${CMAKE_SOURCE_DIR}/Source/Managed/SampleProject.Managed/SampleProject.Managed.csproj"
-        PROPERTIES "SampleProjectUserCodeProject=${USERCODE_PROJECT}"
-        USERCODE SampleProject.UserCode
+        CSHARP_DIR "${CMAKE_SOURCE_DIR}/Source/Managed/SampleProject.Managed"
+        HEADERS "${CMAKE_SOURCE_DIR}/Source/Application/SampleProjectApi.h"
+        IMPLEMENTATION ${APP_PLUGIN_NAME}
+        NAMESPACE SampleProjectApi
+        PLUGINS ${APP_PLUGIN_LIST}
         LINK_LIBRARIES PlayerLibrary
-        # Android packs the resources into the APK. The top-level CMakeLists.txt makes the paks.
-        RESOURCES "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Data.pak" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CoreData.pak")
+        DATA "${CMAKE_SOURCE_DIR}/Project/Data"
+        INSTALL)
     target_compile_definitions (${TARGET_NAME} PRIVATE SAMPLE_PROJECT_CSHARP=1)
 else ()
     if (ANDROID)
@@ -61,8 +60,10 @@ else ()
     target_link_libraries (${TARGET_NAME} PRIVATE Urho3D PlayerLibrary)
 endif ()
 
-# Link launcher with plugins.
-target_link_plugins (${TARGET_NAME} "${APP_PLUGIN_LIST}")
+# Link launcher with plugins. With C#, rbfx_csharp_add_project does it (PLUGINS).
+if (NOT SAMPLE_PROJECT_CSHARP)
+    target_link_plugins (${TARGET_NAME} "${APP_PLUGIN_LIST}")
+endif ()
 
 if (UWP)
     set_property(TARGET ${TARGET_NAME} PROPERTY VS_DESKTOP_EXTENSIONS_VERSION "${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}")

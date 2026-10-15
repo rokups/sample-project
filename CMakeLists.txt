@@ -25,18 +25,8 @@ set(URHO3D_SAMPLES OFF)
 find_package(Urho3D REQUIRED)
 
 # Optional .NET hosting. The launcher starts the .NET runtime and loads the C# plugin Source/Managed/SampleProject.Managed.
-# It needs the dotnet SDK. Desktop needs a shared engine SDK. Web and iOS need a static engine SDK.
-# It supports Linux, Windows, macOS, Android, Web and iOS (device, arm64).
-# On Android and iOS the build makes an app with a .NET head. On Web the build makes a web folder with a .NET
-# WebAssembly head (see rbfx_csharp_add_application). A mobile platform other than Android and iOS is not supported.
-# The iOS simulator is rejected by rbfx_csharp_add_application.
-# SharpCpp.Rbfx must be available on CMAKE_PREFIX_PATH, in addition to the engine:
-# Option 1 - SharpCpp.Rbfx SDK:
-#   - Install SharpCpp.Rbfx with `cmake --install` into some folder
-#   - Configure with `-DCMAKE_PREFIX_PATH="/path/to/rbfx-sdk;/path/to/sharpcpp-rbfx-sdk"`
-# Option 2 - in-source build:
-#   - Clone SharpCpp.Rbfx next to a SharpCpp checkout (or set SHARPCPP_ROOT)
-#   - Configure with `-DCMAKE_PREFIX_PATH="/path/to/rbfx-sdk;/path/to/SharpCpp.Rbfx/cmake/SharpCppRbfx"`
+# It needs the dotnet SDK, and SharpCpp.Rbfx on CMAKE_PREFIX_PATH in addition to the engine (see README.md).
+# Desktop needs a shared engine SDK. Web and iOS need a static engine SDK.
 option(SAMPLE_PROJECT_CSHARP "Host .NET and load a C# plugin" OFF)
 if (SAMPLE_PROJECT_CSHARP)
     if (MOBILE AND NOT ANDROID AND NOT IOS)
@@ -73,16 +63,12 @@ add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Application)
 # With dynamic linking, pre-built editor can be used.
 add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Editor)
 
-# Bind the C++ user code to C# (optional). The launcher passes the bindings to the managed plugin.
-if (SAMPLE_PROJECT_CSHARP)
-    add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Bindings)
-endif ()
-
 # Add custom player.
 add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Launcher)
 
 # Package resources from Project directory.
-if (WEB OR MOBILE)
+# With C#, rbfx_csharp_add_project packs the data.
+if ((WEB OR MOBILE) AND NOT SAMPLE_PROJECT_CSHARP)
     create_pak("${CMAKE_SOURCE_DIR}/Project/Data"    "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Data.pak")
     # Some mobile SDKs have no CoreData. Then use the folder of another SDK on CMAKE_PREFIX_PATH (the host SDK).
     set (SAMPLE_CORE_DATA "${Urho3D_PACKAGE_ROOT}/bin/CoreData")
@@ -96,7 +82,7 @@ if (WEB OR MOBILE)
 endif ()
 
 # Link resources to Player for Web. With C#, ${CMAKE_PROJECT_NAME} is an object library and the .NET head
-# packs the resources (the RESOURCES argument in Source/Launcher/CMakeLists.txt).
+# packs the resources (the DATA keyword in Source/Launcher/CMakeLists.txt).
 if (WEB AND NOT SAMPLE_PROJECT_CSHARP)
     web_executable (${CMAKE_PROJECT_NAME})
     package_resources_web(
@@ -115,9 +101,13 @@ rbfx_configure_cmake_props()
 
 # Install the project outputs consumed by CI artifact uploads and host-side
 # cross-build steps. The engine/SDK remains a separate caller-provided prefix.
+# With C#, rbfx_csharp_add_project installs the application (INSTALL keyword).
+set (INSTALL_TARGETS ${CMAKE_PROJECT_NAME}Editor)
+if (NOT SAMPLE_PROJECT_CSHARP)
+    list (PREPEND INSTALL_TARGETS ${CMAKE_PROJECT_NAME})
+endif ()
 foreach (TARGET
-    ${CMAKE_PROJECT_NAME}
-    ${CMAKE_PROJECT_NAME}Editor
+    ${INSTALL_TARGETS}
     ${APP_PLUGIN_NAME}
     Plugin.Core.SamplePlugin)
     # An object library (the launcher on Web with C#) has no file to install. The .NET head makes the web folder.

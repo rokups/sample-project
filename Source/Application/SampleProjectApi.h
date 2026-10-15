@@ -1,6 +1,6 @@
 #pragma once
 
-// Types of the sample that are bound to C# (see Source/Bindings). This header has only the includes that
+// Types of the sample that are bound to C# (see Source/Launcher/CMakeLists.txt). This header has only the includes that
 // these types need, because the binding generator also reads everything else that a header includes or declares.
 
 #include <Urho3D/Urho3D.h>

@@ -34,22 +34,17 @@ Use `-DSAMPLE_PROJECT_CSHARP=ON` to start the .NET runtime in the launcher and l
     `-DCMAKE_PREFIX_PATH="/path/to/rbfx-SDK;/path/to/sharpcpp-rbfx-SDK"`
   - SharpCpp.Rbfx source tree (it needs a SharpCpp checkout; set `SHARPCPP_ROOT` if it is not in `../SharpCpp`):
     `-DCMAKE_PREFIX_PATH="/path/to/rbfx-SDK;/path/to/SharpCpp.Rbfx/cmake/SharpCppRbfx"`
-- `Source/Launcher/CMakeLists.txt` makes the launcher with one call to `rbfx_csharp_add_application()`.
-  The target `SampleProject.CSharp` of that call builds the C# plugin and copies the native wrapper next to the launcher.
-  It is part of the default build.
-- `Source/Bindings/CMakeLists.txt` binds the C++ user code to C# with `rbfx_csharp_add_usercode()`.
-  The bound types are `PlayerController` and `GameSaveData` in the C++ namespace `SampleProjectApi`
+- `Source/Launcher/CMakeLists.txt` makes the launcher and all C# parts with one call to `rbfx_csharp_add_project()`.
+  The call binds the C++ user code to C# (`HEADERS`, `IMPLEMENTATION`, `NAMESPACE`), builds the C# plugin, links the
+  C++ plugins (`PLUGINS`), packs the data on Android, iOS and Web (`DATA`) and adds the install rules (`INSTALL`).
+  The native wrapper and the plugin are next to the launcher.
+- The bound types are `PlayerController` and `GameSaveData` in the C++ namespace `SampleProjectApi`
   (`Source/Application/SampleProjectApi.h`). The generator ignores other namespaces.
-  The target `SampleProject.UserCode` links the library `App.Main`, so the wrapper and the engine use one copy of the code.
-  The launcher call passes it with `USERCODE SampleProject.UserCode`.
-  The plugin project references the generated bindings project (the MSBuild property `SampleProjectUserCodeProject`).
   The plugin creates a `PlayerController` and a `GameSaveData` and logs their values. The C++ plugin `App.Main` registers
   the factory of `PlayerController`. A second registration in C# fails with a duplicate reflection error.
-  The native library `libSampleProject.UserCode.Native` is copied next to the launcher, and the runtime loads it from there.
-  On Web and iOS there is no copy. The native library is static code in the head.
-  The type of this library follows `BUILD_SHARED_LIBS`, so it is always equal to the type of the engine.
   The classes of `App.Main` use the export macro `SAMPLE_PROJECT_API`.
-  The build of the bindings is tested on Linux with both forms above.
+- The plugin project is generated from the folder `Source/Managed/SampleProject.Managed`.
+  To use an own project file, pass `CSPROJ` to the call.
   CI of SharpCpp.Rbfx builds this sample against its SDK.
 
 Check out `Scripts/` folder and `.github/workflows/deploy.yml` to see how this sample can be built.

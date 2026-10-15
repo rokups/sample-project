@@ -6,7 +6,7 @@
 #include <Player/PlayerApplication.h>
 
 #if SAMPLE_PROJECT_CSHARP
-    #include <Urho3D/CSharp/DotNetHost.h>
+    #include <Urho3D/CSharp/DotNetPlugin.h>
 
     #include <filesystem>
     #include <string>
@@ -46,17 +46,10 @@ public:
         // The engine creates the plugin manager before Start().
         const std::filesystem::path directory(GetSubsystem<FileSystem>()->GetProgramDir().c_str());
 
-        DotNetHostOptions options;
-        options.runtimeConfigPath = directory / (std::string(SHARPCPP_RBFX_PLUGIN_NAME) + ".runtimeconfig.json");
         std::string error;
-        if (!host_.Initialize(options, error))
+        if (!StartDotNetPlugin(host_, GetSubsystem<PluginManager>(), directory, SHARPCPP_RBFX_PLUGIN_NAME, error))
         {
-            Fail(ea::string("Cannot start the .NET runtime: ") + error.c_str());
-            return;
-        }
-        if (!host_.LoadPlugin(GetSubsystem<PluginManager>(), directory / (std::string(SHARPCPP_RBFX_PLUGIN_NAME) + ".dll"), error))
-        {
-            Fail(ea::string("Cannot load the C# plugin: ") + error.c_str());
+            Fail(ea::string(error.c_str()));
             return;
         }
 #endif
