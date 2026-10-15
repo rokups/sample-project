@@ -81,7 +81,15 @@ add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Launcher)
 # Package resources from Project directory.
 if (WEB OR MOBILE)
     create_pak("${CMAKE_SOURCE_DIR}/Project/Data"    "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Data.pak")
-    create_pak("${Urho3D_PACKAGE_ROOT}/bin/CoreData" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CoreData.pak")
+    # Some mobile SDKs have no CoreData. Then use the folder of another SDK on CMAKE_PREFIX_PATH (the host SDK).
+    set (SAMPLE_CORE_DATA "${Urho3D_PACKAGE_ROOT}/bin/CoreData")
+    if (NOT EXISTS "${SAMPLE_CORE_DATA}")
+        find_path (SAMPLE_CORE_DATA_ROOT bin/CoreData PATHS ${CMAKE_PREFIX_PATH} NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
+        if (SAMPLE_CORE_DATA_ROOT)
+            set (SAMPLE_CORE_DATA "${SAMPLE_CORE_DATA_ROOT}/bin/CoreData")
+        endif ()
+    endif ()
+    create_pak("${SAMPLE_CORE_DATA}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CoreData.pak")
 endif ()
 
 # Link resources to Player for Web.
