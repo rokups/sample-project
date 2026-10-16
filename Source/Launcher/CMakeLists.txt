@@ -36,18 +36,29 @@ endif()
 
 # Add launcher target.
 if (SAMPLE_PROJECT_CSHARP)
-    # One call makes the bindings of the user code, the launcher, the managed plugin, the paks and the install rules.
-    # The plugin project is generated from CSHARP_DIR. CSPROJ can name an own project instead.
-    rbfx_csharp_add_project (${TARGET_NAME}
-        SOURCES ${SOURCE_FILES} ${RESOURCE_FILES}
-        CSHARP_DIR "${CMAKE_SOURCE_DIR}/Source/Managed/SampleProject.Managed"
+    # The parts of the application are made one by one, because the managed plugin references two wrappers:
+    # the wrapper of the user code and the wrapper of Plugin.Core.SamplePlugin (made in the folder of that plugin).
+    set (SAMPLE_WRAPPER_TARGET ${TARGET_NAME}.Wrapper)
+    rbfx_csharp_add_wrapper (${SAMPLE_WRAPPER_TARGET}
         HEADERS "${CMAKE_SOURCE_DIR}/Source/Application/SampleProjectApi.h"
+        INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/Source/Application"
         IMPLEMENTATION ${APP_PLUGIN_NAME}
-        NAMESPACE SampleProjectApi
+        NAMESPACE SampleProjectApi)
+    set (SAMPLE_WRAPPER_TARGETS ${SAMPLE_WRAPPER_TARGET})
+    if (TARGET Plugin.Core.SamplePlugin.Wrapper)
+        list (APPEND SAMPLE_WRAPPER_TARGETS Plugin.Core.SamplePlugin.Wrapper)
+    endif ()
+    # The plugin project is generated from CSHARP_DIR. CSPROJ can name an own project instead.
+    rbfx_csharp_add_plugin (${TARGET_NAME}.Managed
+        CSHARP_DIR "${CMAKE_SOURCE_DIR}/Source/Managed/SampleProject.Managed"
+        REFERENCES ${SAMPLE_WRAPPER_TARGETS})
+    rbfx_csharp_add_launcher (${TARGET_NAME}
+        SOURCES ${SOURCE_FILES} ${RESOURCE_FILES}
         PLUGINS ${APP_PLUGIN_LIST}
-        LINK_LIBRARIES PlayerLibrary
-        DATA "${CMAKE_SOURCE_DIR}/Project/Data"
-        INSTALL)
+        LINK_LIBRARIES PlayerLibrary)
+    rbfx_csharp_add_data (${TARGET_NAME}.Data DIRECTORIES "${CMAKE_SOURCE_DIR}/Project/Data")
+    rbfx_csharp_package_application (${TARGET_NAME} PLUGIN ${TARGET_NAME}.Managed DATA ${TARGET_NAME}.Data)
+    rbfx_csharp_install_application (${TARGET_NAME})
     target_compile_definitions (${TARGET_NAME} PRIVATE SAMPLE_PROJECT_CSHARP=1)
 else ()
     if (ANDROID)
