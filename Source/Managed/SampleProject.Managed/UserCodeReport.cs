@@ -13,6 +13,6 @@ public static class UserCodeReport
     {
         using var player = new PlayerController(context);
         using var data = new GameSaveData();
-        return $"User code: {player.GetTypeName()}, GameSaveData defaults: position {data.ActorPosition}, rotation {data.ActorRotation}.";
+        return $"User code: {player.GetTypeName()}, GameSaveData defaults: position {data.ActorPosition}, rotation {data.ActorRotation}. Plugin type: {typeof(global::Urho3D.SampleComponent).FullName}.";
     }
 }
