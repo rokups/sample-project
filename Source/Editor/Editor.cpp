@@ -1,6 +1,7 @@
 #include "CreateRandomBox.h"
 
 #include <Editor/EditorApplication.h>
+#include <Urho3D/Engine/EngineDefs.h>
 
 #if SAMPLE_PROJECT_CSHARP
 #include "RbfxCSharpEditorHost.h"
@@ -21,12 +22,16 @@ public:
 
         EditorApplication::Setup();
         LinkedPlugins::RegisterStaticPlugins();
+
+        // The editor turns the lookup of ResourceRoot.ini off. Turn it on again, so a build tree finds CoreData and
+        // EditorData through the ResourceRoot.ini of the project. Without the file the engine uses its normal lookup.
+        engineParameters_[EP_RESOURCE_ROOT_FILE] = "ResourceRoot.ini";
     }
 
 #if SAMPLE_PROJECT_CSHARP
     void Start() override
     {
-        // Start the .NET runtime before the editor creates its plugin manager.
+        // Start the .NET runtime before the editor starts.
         ea::string error;
         if (!dotNet_.Start(context_, SHARPCPP_RBFX_EDITOR_HOST_NAME, error))
         {
