@@ -43,6 +43,10 @@ Use `-DSAMPLE_PROJECT_CSHARP=ON` to start the .NET runtime in the launcher and l
   The plugin creates a `PlayerController` and a `GameSaveData` and logs their values. The C++ plugin `App.Main` registers
   the factory of `PlayerController`. A second registration in C# fails with a duplicate reflection error.
   The classes of `App.Main` use the export macro `SAMPLE_PROJECT_API`.
+- The editor `SampleProjectEditor` has the .NET hosting too (`rbfx_csharp_host_editor()` with `LAUNCHER`). It registers the managed plugin
+  of the launcher, so the editor shows the C# component `Greeter` in the category `Example`. The editor only registers the plugin.
+  The project loads it. Add the folder `Source/Launcher` before `Source/Editor` in `CMakeLists.txt`. The registration needs shared plugins
+  (the `dll` presets), because a static plugin build has no shared `App.Main` library for the `DllImport` of the bindings.
 - The plugin project is generated from the folder `Source/Managed/SampleProject.Net`.
   To use an own project file, pass `CSPROJ` to the call.
   CI of SharpCpp.Rbfx builds this sample against its SDK.

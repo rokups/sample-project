@@ -16,6 +16,9 @@ public partial class SampleProjectPlugin : ManagedPlugin
     {
     }
 
+    /// <summary>The editor lists the types of the plugin in this category.</summary>
+    protected override string FactoryCategory => "Example";
+
     protected override void Load()
     {
         base.Load();

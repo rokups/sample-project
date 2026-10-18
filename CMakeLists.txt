@@ -59,12 +59,13 @@ set (APP_PLUGIN_LIST "Plugin.Core.SamplePlugin;${APP_PLUGIN_NAME}")
 # Add main application library with all user code.
 add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Application)
 
-# Add custom editor linked with user code.
-# With dynamic linking, pre-built editor can be used.
-add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Editor)
-
 # Add custom player.
 add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Launcher)
+
+# Add custom editor linked with user code.
+# With dynamic linking, pre-built editor can be used.
+# With C#, the editor registers the managed plugin of the launcher, so the launcher comes first.
+add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Editor)
 
 # Package resources from Project directory.
 # With C#, rbfx_csharp_add_project packs the data.
