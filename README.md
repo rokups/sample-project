@@ -47,6 +47,36 @@ Use `-DSAMPLE_PROJECT_CSHARP=ON` to start the .NET runtime in the launcher and l
   To use an own project file, pass `CSPROJ` to the call.
   CI of SharpCpp.Rbfx builds this sample against its SDK.
 
+### CMake presets
+
+`CMakePresets.json` has presets for the platforms of the sample. The preset names follow the names of the rbfx presets.
+
+- Configure presets: `windows-msvc-x64-{lib,dll}`, `linux-{gcc,clang}-x64-{lib,dll}`, `macos-clang-{x64,arm64}-{lib,dll}`,
+  `android-clang-{arm,arm64,x64}-dll`, `web-emscripten-wasm-lib` and `ios-clang-arm64-lib`.
+  `lib` is a static engine SDK. `dll` is a shared engine SDK.
+- Build presets: the configure preset name plus `-debug` or `-release`.
+- `cmake --list-presets` shows the presets that the host can use.
+- The build directory is `cmake-build/<preset>`.
+
+The presets do not contain paths. Set these environment variables before the configure step:
+
+- `RBFX_SDK_ROOT`: the engine SDK (the folder with `share/Urho3D`). It must match the preset (`lib` or `dll`, and the platform).
+- `SHARPCPP_SDK_ROOT`: the SharpCpp.Rbfx SDK or `cmake/SharpCppRbfx` of a source tree. It is only for C# hosting.
+- `RBFX_HOST_SDK_ROOT`: the SDK for the host. Android presets use it.
+- `ANDROID_NDK_HOME` for Android presets and `EMSDK` for the Web preset.
+
+The presets set `CMAKE_PREFIX_PATH` to `$RBFX_SDK_ROOT;$SHARPCPP_SDK_ROOT`. To use other paths, pass `-DCMAKE_PREFIX_PATH=...`.
+The Web and iOS presets also set `CMAKE_FIND_ROOT_PATH`.
+
+```
+export RBFX_SDK_ROOT=/path/to/rbfx-SDK
+cmake --preset linux-gcc-x64-dll
+cmake --build --preset linux-gcc-x64-dll-release
+```
+
+C# hosting is off in the presets. Add `-DSAMPLE_PROJECT_CSHARP=ON` to the configure step to switch it on.
+The Windows presets use the generator `Visual Studio 18 2026`. Pass `-G "Visual Studio 17 2022"` for an older Visual Studio.
+
 Check out `Scripts/` folder and `.github/workflows/deploy.yml` to see how this sample can be built.
 
 ## Running the Sample
