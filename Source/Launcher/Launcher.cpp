@@ -1,12 +1,10 @@
 #include <Urho3D/Engine/EngineDefs.h>
 #include <Urho3D/IO/FileSystem.h>
-#include <Urho3D/IO/Log.h>
-#include <Urho3D/Plugins/PluginManager.h>
 
 #include <Player/PlayerApplication.h>
 
 #if SAMPLE_PROJECT_CSHARP
-    #include <Urho3D/CSharp/DotNetPlugin.h>
+    #include <Urho3D/CSharp/DotNetHost.h>
 #endif
 
 using namespace Urho3D;
@@ -41,13 +39,10 @@ public:
     {
 #if SAMPLE_PROJECT_CSHARP
         // The engine creates the plugin manager before Start().
-        const ea::string directory = GetSubsystem<FileSystem>()->GetProgramDir();
-
-        ea::string error;
-        if (!StartDotNetPlugin(host_, GetSubsystem<PluginManager>(), directory, SHARPCPP_RBFX_PLUGIN_NAME, error))
+        host_ = MakeShared<DotNetHost>(context_);
+        if (!host_->Start(SHARPCPP_RBFX_PLUGIN_NAME))
         {
-            URHO3D_LOGERROR("{}", error);
-            ErrorExit(error);
+            ErrorExit(host_->GetLastError());
             return;
         }
 #endif
@@ -58,13 +53,14 @@ public:
     {
         PlayerApplication::Stop();
 #if SAMPLE_PROJECT_CSHARP
-        host_.Close();
+        if (host_)
+            host_->Stop();
 #endif
     }
 
 #if SAMPLE_PROJECT_CSHARP
 private:
-    DotNetHost host_;
+    SharedPtr<DotNetHost> host_;
 #endif
 };
 
