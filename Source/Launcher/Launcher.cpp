@@ -7,9 +7,6 @@
 
 #if SAMPLE_PROJECT_CSHARP
     #include <Urho3D/CSharp/DotNetPlugin.h>
-
-    #include <filesystem>
-    #include <string>
 #endif
 
 using namespace Urho3D;
@@ -44,12 +41,13 @@ public:
     {
 #if SAMPLE_PROJECT_CSHARP
         // The engine creates the plugin manager before Start().
-        const std::filesystem::path directory(GetSubsystem<FileSystem>()->GetProgramDir().c_str());
+        const ea::string directory = GetSubsystem<FileSystem>()->GetProgramDir();
 
-        std::string error;
+        ea::string error;
         if (!StartDotNetPlugin(host_, GetSubsystem<PluginManager>(), directory, SHARPCPP_RBFX_PLUGIN_NAME, error))
         {
-            Fail(ea::string(error.c_str()));
+            URHO3D_LOGERROR("{}", error);
+            ErrorExit(error);
             return;
         }
 #endif
@@ -66,12 +64,6 @@ public:
 
 #if SAMPLE_PROJECT_CSHARP
 private:
-    void Fail(const ea::string& message)
-    {
-        URHO3D_LOGERROR("{}", message);
-        ErrorExit(message);
-    }
-
     DotNetHost host_;
 #endif
 };
