@@ -1,9 +1,9 @@
 # CMake generated build files
-/cmake-build-*/
+build/
+cmake-build*/
+compile_commands.json
 
 # Ignore generated projects
-build/
-cmake-build/
 .vscode/
 
 # Android output directories
