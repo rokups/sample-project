@@ -6,7 +6,7 @@ using Urho3D.Scene;
 namespace SampleProject.Net;
 
 /// <summary>Small C# component. It writes one log line when it starts.</summary>
-[FactoryReflection]
+[FactoryReflection(Category="Component/Logic")]
 public partial class Greeter : LogicComponent
 {
     /// <summary>Text of the log line. It is the engine attribute "Message".</summary>
