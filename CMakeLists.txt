@@ -6,10 +6,12 @@ set (PROJECT_UWP_GUID "D84454DA-854B-3661-9EDA-0B587569493A")
 # C++17 is required for this project.
 set (CMAKE_CXX_STANDARD 17)
 
-# Setup output directories.
+# Setup output directories. The executables, the native libraries and the .NET files of a configuration share one
+# folder: ${CMAKE_BINARY_DIR}/bin/<configuration>. The generator expression stops a multi-config generator from adding
+# its own folder.
 set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/$<CONFIG>)
 
 # Configure engine options. This is required in-source engine builds.
 set(URHO3D_SAMPLES OFF)
@@ -69,8 +71,11 @@ add_subdirectory (${CMAKE_SOURCE_DIR}/Source/Editor)
 
 # Package resources from Project directory.
 # With C#, rbfx_csharp_add_project packs the data.
+# The paks need a path without generator expressions. Web and mobile builds use a single-config generator, so
+# CMAKE_BUILD_TYPE gives the same folder as $<CONFIG>.
+set (SAMPLE_OUTPUT_DIR "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}")
 if ((WEB OR MOBILE) AND NOT SAMPLE_PROJECT_CSHARP)
-    create_pak("${CMAKE_SOURCE_DIR}/Project/Data"    "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Data.pak")
+    create_pak("${CMAKE_SOURCE_DIR}/Project/Data"    "${SAMPLE_OUTPUT_DIR}/Data.pak")
     # Some mobile SDKs have no CoreData. Then use the folder of another SDK on CMAKE_PREFIX_PATH (the host SDK).
     set (SAMPLE_CORE_DATA "${Urho3D_PACKAGE_ROOT}/bin/CoreData")
     if (NOT EXISTS "${SAMPLE_CORE_DATA}")
@@ -79,7 +84,7 @@ if ((WEB OR MOBILE) AND NOT SAMPLE_PROJECT_CSHARP)
             set (SAMPLE_CORE_DATA "${SAMPLE_CORE_DATA_ROOT}/bin/CoreData")
         endif ()
     endif ()
-    create_pak("${SAMPLE_CORE_DATA}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CoreData.pak")
+    create_pak("${SAMPLE_CORE_DATA}" "${SAMPLE_OUTPUT_DIR}/CoreData.pak")
 endif ()
 
 # Link resources to Player for Web. With C#, ${CMAKE_PROJECT_NAME} is an object library and the .NET head
@@ -87,11 +92,11 @@ endif ()
 if (WEB AND NOT SAMPLE_PROJECT_CSHARP)
     web_executable (${CMAKE_PROJECT_NAME})
     package_resources_web(
-        FILES        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Data.pak"
-                     "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/CoreData.pak"
-        RELATIVE_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        FILES        "${SAMPLE_OUTPUT_DIR}/Data.pak"
+                     "${SAMPLE_OUTPUT_DIR}/CoreData.pak"
+        RELATIVE_DIR "${SAMPLE_OUTPUT_DIR}"
         OUTPUT       "Resources.js"
-        INSTALL_TO   "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+        INSTALL_TO   "${SAMPLE_OUTPUT_DIR}"
     )
     web_link_resources(${CMAKE_PROJECT_NAME} Resources.js)
     target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE "--shell-file ${Urho3D_PACKAGE_ROOT}/bin/shell.html")

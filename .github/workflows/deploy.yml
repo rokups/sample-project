@@ -94,10 +94,10 @@ jobs:
         env:
           BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
         run: |
-          butler push "${{ env.ci_web_build_dir }}/bin/project" "eugeneko/sample-project:web"
+          butler push "${{ env.ci_web_build_dir }}/bin/Release/project" "eugeneko/sample-project:web"
 
       - name: Publish Windows build
         env:
           BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
         run: |
-          butler push "${{ env.ci_windows_build_dir }}/bin/project" "eugeneko/sample-project:windows"
+          butler push "${{ env.ci_windows_build_dir }}/bin/RelWithDebInfo/project" "eugeneko/sample-project:windows"

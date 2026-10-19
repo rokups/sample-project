@@ -80,15 +80,15 @@ function action-build() {
 }
 
 function action-prepare() {
-    cd $ci_build_dir/bin
+    cd $ci_build_dir/bin/${build_config[$ci_platform]}
     mkdir -p project
     if [[ "$ci_platform" == "web" ]]; then
         cp ./SampleProject.js ./SampleProject.wasm ./Resources.js ./Resources.js.data ./project
         cp ./SampleProject.html ./project/index.html
     elif [[ "$ci_platform" == "windows" ]]; then
-        cp ./RelWithDebInfo/SampleProject.exe ./project
-        cp ./RelWithDebInfo/*.dll ./project
-        cp ./RelWithDebInfo/*.pdb ./project
+        cp ./SampleProject.exe ./project
+        cp ./*.dll ./project
+        cp ./*.pdb ./project
         cp -r $ci_source_dir/Project/Data ./project
         cp -r $ci_target_sdk_dir/bin/CoreData ./project
 
